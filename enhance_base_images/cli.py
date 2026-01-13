@@ -16,6 +16,8 @@ from datetime import datetime
 
 import typer
 import keyring
+from InquirerPy import inquirer
+from InquirerPy.separator import Separator
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn, TimeElapsedColumn
 from rich.table import Table
@@ -222,62 +224,55 @@ def add_to_history(prompt: str) -> None:
 
 
 def select_prompt_interactive() -> Optional[str]:
-    """인터랙티브 프롬프트 선택 UI"""
+    """인터랙티브 프롬프트 선택 UI (방향키 사용)"""
     presets = load_presets()
     history = load_history()
 
-    options = []
+    choices = []
 
-    console.print()
-    console.print("[bold]프롬프트 선택:[/bold]")
-    console.print()
-
-    # 프리셋 표시
+    # 프리셋 추가
     if presets:
-        console.print("[cyan][프리셋][/cyan]")
+        choices.append(Separator("── 프리셋 ──"))
         for name, data in presets.items():
-            idx = len(options) + 1
             desc = data.get("description", "")
-            console.print(f"  [bold]{idx}.[/bold] {name:<20} [dim]{desc}[/dim]")
-            options.append(("preset", name, data.get("prompt", "")))
-        console.print()
+            label = f"{name}  {desc}" if desc else name
+            choices.append({"name": label, "value": ("preset", data.get("prompt", ""))})
 
-    # 최근 사용 표시
+    # 최근 사용 추가
     if history:
-        console.print("[yellow][최근 사용][/yellow]")
+        choices.append(Separator("── 최근 사용 ──"))
         for item in history:
-            idx = len(options) + 1
             prompt_preview = item.get("prompt", "")[:50].replace("\n", " ")
             if len(item.get("prompt", "")) > 50:
                 prompt_preview += "..."
-            console.print(f"  [bold]{idx}.[/bold] {prompt_preview}")
-            options.append(("history", None, item.get("prompt", "")))
-        console.print()
+            choices.append({"name": prompt_preview, "value": ("history", item.get("prompt", ""))})
 
     # 직접 입력 옵션
-    direct_idx = len(options) + 1
-    console.print(f"  [bold]{direct_idx}.[/bold] [green]직접 입력[/green]")
-    console.print()
+    choices.append(Separator("──────────"))
+    choices.append({"name": "직접 입력", "value": ("direct", None)})
 
-    if not options:
+    if not presets and not history:
         # 프리셋도 히스토리도 없으면 바로 직접 입력
         return prompt_direct_input()
 
-    # 선택 받기
-    while True:
-        choice = Prompt.ask(f"선택 (1-{direct_idx})")
+    console.print()
+    result = inquirer.select(
+        message="프롬프트 선택:",
+        choices=choices,
+        pointer="❯",
+        qmark="",
+        amark="",
+    ).execute()
 
-        try:
-            choice_num = int(choice)
-            if choice_num == direct_idx:
-                return prompt_direct_input()
-            elif 1 <= choice_num <= len(options):
-                _, _, prompt = options[choice_num - 1]
-                return prompt
-            else:
-                console.print(f"[red]1-{direct_idx} 사이의 숫자를 입력하세요.[/red]")
-        except ValueError:
-            console.print(f"[red]1-{direct_idx} 사이의 숫자를 입력하세요.[/red]")
+    if result is None:
+        return None
+
+    choice_type, prompt = result
+
+    if choice_type == "direct":
+        return prompt_direct_input()
+    else:
+        return prompt
 
 
 def prompt_direct_input() -> Optional[str]:
