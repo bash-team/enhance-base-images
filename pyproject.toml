@@ -1,0 +1,66 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "enhance-base-images"
+version = "0.1.2"
+description = "Gemini API를 이용한 이미지 일괄 편집 CLI 도구"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.9"
+authors = [
+    { name = "jaeseokk" }
+]
+keywords = ["gemini", "image-editing", "cli", "ai", "batch-processing"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Graphics :: Graphics Conversion",
+]
+
+dependencies = [
+    "typer>=0.9.0",
+    "rich>=13.0.0",
+    "Pillow>=10.0.0",
+    "google-genai>=1.0.0",
+    "keyring>=25.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+]
+
+[project.scripts]
+enhance-base-images = "enhance_base_images.cli:cli"
+
+[project.urls]
+Homepage = "https://github.com/jaeseokk/enhance-base-images"
+Repository = "https://github.com/jaeseokk/enhance-base-images"
+Issues = "https://github.com/jaeseokk/enhance-base-images/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["enhance_base_images"]
+
+[tool.black]
+line-length = 100
+target-version = ["py39"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+select = ["E", "F", "W", "I", "N", "UP"]
+ignore = ["E501"]
