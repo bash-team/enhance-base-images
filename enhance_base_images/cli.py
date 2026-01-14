@@ -469,7 +469,7 @@ def run(
     tasks = []
     skipped = 0
     for img_path in image_files:
-        out_path = output_dir / f"edited_{img_path.name}"
+        out_path = output_dir / f"{img_path.stem}_edited{img_path.suffix}"
         if out_path.exists():
             skipped += 1
         else:
