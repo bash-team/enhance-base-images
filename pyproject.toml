@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "enhance-base-images"
-version = "0.2.1"
+version = "0.2.2"
 description = "Gemini API를 이용한 이미지 일괄 편집 CLI 도구"
 readme = "README.md"
 license = "MIT"

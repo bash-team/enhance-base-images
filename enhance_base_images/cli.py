@@ -235,7 +235,7 @@ def select_prompt_interactive() -> Optional[str]:
         choices.append(Separator("── 프리셋 ──"))
         for name, data in presets.items():
             desc = data.get("description", "")
-            label = f"{name}  {desc}" if desc else name
+            label = f"{name}  ({desc})" if desc else name
             choices.append({"name": label, "value": ("preset", data.get("prompt", ""))})
 
     # 최근 사용 추가
@@ -771,9 +771,9 @@ def preset_list():
         raise typer.Exit(0)
 
     table = Table(title="프롬프트 프리셋")
-    table.add_column("이름", style="cyan")
-    table.add_column("설명")
-    table.add_column("프롬프트 미리보기", style="dim")
+    table.add_column("이름", style="cyan bold")
+    table.add_column("설명", style="dim")
+    table.add_column("프롬프트 미리보기", style="dim italic")
 
     for name, data in presets.items():
         desc = data.get("description", "")
