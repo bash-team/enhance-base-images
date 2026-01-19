@@ -751,6 +751,7 @@ def config_test():
         response = client.models.generate_content(
             model="gemini-2.0-flash",
             contents="Say 'API key is valid' in exactly those words.",
+            config=types.GenerateImagesConfig(aspect_ratio="16:9")
         )
         console.print("[green]✓ API 키가 유효합니다![/green]")
         console.print(f"[dim]응답: {response.text[:50]}...[/dim]")
