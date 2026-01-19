@@ -323,11 +323,12 @@ def get_image_files(input_dir: Path) -> list[Path]:
 
 
 def edit_single_image(
-    client,
+    client: genai.Client,
     image_path: Path,
     output_path: Path,
     model: str,
     prompt: str,
+    aspect_ratio: str,
 ) -> tuple[bool, str]:
     """단일 이미지 편집"""
     filename = image_path.name
@@ -335,9 +336,17 @@ def edit_single_image(
     try:
         image_input = Image.open(image_path)
 
+        config = types.GenerateContentConfig(
+            response_modalities=["IMAGE", "TEXT"],
+            image_config=types.ImageConfig(
+                aspect_ratio=aspect_ratio
+            )
+        )
+
         response = client.models.generate_content(
             model=model,
             contents=[prompt, image_input],
+            config=config,
         )
 
         for part in response.parts:
@@ -428,6 +437,11 @@ def run(
         "--debug", "-d",
         help="디버그 모드 활성화",
     ),
+    aspect_ratio: str = typer.Option(
+        "9:16",
+        "--aspect-ratio", "-a",
+        help="출력 이미지 비율 (1:1, 3:4, 4:3, 9:16, 16:9)",
+    ),
 ):
     """
     이미지 일괄 편집을 실행합니다.
@@ -485,6 +499,7 @@ def run(
     table.add_row("출력 폴더", str(output_dir.absolute()))
     table.add_row("모델", model)
     table.add_row("병렬 처리", f"{workers}개 동시")
+    table.add_row("출력 비율", aspect_ratio)
     table.add_row("처리 대상", f"{total}개 이미지")
     table.add_row("건너뜀", f"{skipped}개 (이미 존재)")
 
@@ -530,7 +545,7 @@ def run(
 
         def process_image(args):
             img_path, out_path = args
-            return edit_single_image(client, img_path, out_path, model, edit_prompt)
+            return edit_single_image(client, img_path, out_path, model, edit_prompt, aspect_ratio)
 
         with ThreadPoolExecutor(max_workers=workers) as executor:
             futures = {executor.submit(process_image, task): task for task in tasks}
@@ -751,7 +766,6 @@ def config_test():
         response = client.models.generate_content(
             model="gemini-2.0-flash",
             contents="Say 'API key is valid' in exactly those words.",
-            config=types.GenerateImagesConfig(aspect_ratio="16:9")
         )
         console.print("[green]✓ API 키가 유효합니다![/green]")
         console.print(f"[dim]응답: {response.text[:50]}...[/dim]")
